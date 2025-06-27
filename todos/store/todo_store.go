@@ -52,14 +52,14 @@ func DeleteTodo(id int) {
 }
 
 func UpdateTodo(todo models.Todo, updateTodoInput inputs.UpdateTodoInput) models.Todo {
-	updatedTodo := applyChanges(todo, updateTodoInput)
+	updatedTodo := getTodoWithChanges(todo, updateTodoInput)
 
 	models.Todos[todo.ID] = updatedTodo
 
 	return updatedTodo
 }
 
-func applyChanges(todo models.Todo, input inputs.UpdateTodoInput) models.Todo {
+func getTodoWithChanges(todo models.Todo, input inputs.UpdateTodoInput) models.Todo {
 	updatedTodo := todo
 
 	if input.Title != nil {

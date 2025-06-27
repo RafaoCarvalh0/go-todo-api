@@ -7,7 +7,22 @@ import (
 	"go-todo-api/todos/models"
 )
 
+func setupTestDB(t *testing.T) {
+	originalTodos := models.Todos
+
+	t.Cleanup(func() {
+		models.Todos = originalTodos
+	})
+
+	models.Todos = map[int]models.Todo{
+		1: {ID: 1, Title: "Aprender Go", Done: false},
+		2: {ID: 2, Title: "Criar API com Gin", Done: true},
+	}
+}
+
 func TestGetTodos(t *testing.T) {
+	setupTestDB(t)
+
 	result := GetTodos()
 
 	expectedCount := len(models.Todos)
@@ -26,6 +41,8 @@ func TestGetTodos(t *testing.T) {
 }
 
 func TestGetTodoByID(t *testing.T) {
+	setupTestDB(t)
+
 	todoID := 1
 
 	todo, exists := GetTodoByID(todoID)
@@ -40,6 +57,8 @@ func TestGetTodoByID(t *testing.T) {
 }
 
 func TestGetTodoByIDNotFound(t *testing.T) {
+	setupTestDB(t)
+
 	todoID := 999
 
 	todo, exists := GetTodoByID(todoID)
@@ -55,6 +74,8 @@ func TestGetTodoByIDNotFound(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
+	setupTestDB(t)
+
 	input := inputs.CreateTodoInput{
 		Title: "Test Todo",
 		Done:  true,
@@ -70,8 +91,8 @@ func TestCreateTodo(t *testing.T) {
 		t.Errorf("Expected done %t, got %t", input.Done, result.Done)
 	}
 
-	if result.ID <= 0 {
-		t.Errorf("Expected ID > 0, got %d", result.ID)
+	if result.ID != 3 {
+		t.Errorf("Expected ID 3, got %d", result.ID)
 	}
 
 	if _, exists := models.Todos[result.ID]; !exists {
@@ -80,6 +101,8 @@ func TestCreateTodo(t *testing.T) {
 }
 
 func TestDeleteTodo(t *testing.T) {
+	setupTestDB(t)
+
 	input := inputs.CreateTodoInput{
 		Title: "Todo to delete",
 		Done:  false,
@@ -98,6 +121,8 @@ func TestDeleteTodo(t *testing.T) {
 }
 
 func TestUpdateTodo(t *testing.T) {
+	setupTestDB(t)
+
 	input := inputs.CreateTodoInput{
 		Title: "Original Title",
 		Done:  false,
@@ -133,6 +158,8 @@ func TestUpdateTodo(t *testing.T) {
 }
 
 func TestApplyChanges(t *testing.T) {
+	setupTestDB(t)
+
 	originalTodo := models.Todo{
 		ID:    1,
 		Title: "Original Title",
@@ -146,7 +173,7 @@ func TestApplyChanges(t *testing.T) {
 		Done:  &newDone,
 	}
 
-	result := applyChanges(originalTodo, input)
+	result := getTodoWithChanges(originalTodo, input)
 
 	if result.Title != newTitle {
 		t.Errorf("Expected title '%s', got '%s'", newTitle, result.Title)
@@ -162,6 +189,8 @@ func TestApplyChanges(t *testing.T) {
 }
 
 func TestApplyChangesPartial(t *testing.T) {
+	setupTestDB(t)
+
 	originalTodo := models.Todo{
 		ID:    1,
 		Title: "Original Title",
@@ -173,7 +202,7 @@ func TestApplyChangesPartial(t *testing.T) {
 		Title: &newTitle,
 	}
 
-	result := applyChanges(originalTodo, input)
+	result := getTodoWithChanges(originalTodo, input)
 
 	if result.Title != newTitle {
 		t.Errorf("Expected title '%s', got '%s'", newTitle, result.Title)
@@ -189,6 +218,8 @@ func TestApplyChangesPartial(t *testing.T) {
 }
 
 func TestGetLastTodo(t *testing.T) {
+	setupTestDB(t)
+
 	result := getLastTodo()
 
 	if result.ID <= 0 {
